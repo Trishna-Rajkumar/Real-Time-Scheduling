@@ -1,0 +1,53 @@
+function y = is_bondformed_func(constr_num,arti_constr_pair)
+global intermediate_dag;
+
+
+ for x1= 1:constr_num
+
+        %%%%%%assign a copy of original DAG to each constraint%%%%%%%%%%%%
+
+        constr_par = arti_constr_pair(x1,1);    %%parent and
+        constr_child= arti_constr_pair(x1,2);   %%child in the constraint pair
+%         intermediate_dag(x1).v1 = task(task_num).v;  
+        intermediate_dag(x1).v1 = v; 
+        %%%%%%%%%%%%%% add path%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        intermediate_dag(x1).v1(constr_par).succ(end+1) = constr_child;  
+        intermediate_dag(x1).v1(constr_child).pred(end+1)= constr_par;
+
+        %%%%%%%%%%%%%%%%remove paths %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        pred_temp = intersect(intermediate_dag(x1).v1(constr_par).pred,intermediate_dag(x1).v1(constr_child).pred);
+        succ_temp = intersect(intermediate_dag(x1).v1(constr_par).succ, intermediate_dag(x1).v1(constr_child).succ);
+        for p_rem = 1:length(pred_temp)
+            parent_rem = pred_temp(p_rem);
+            intermediate_dag(x1).v1(parent_rem).succ( intermediate_dag(x1).v1(parent_rem).succ == constr_child)= [];
+            intermediate_dag(x1).v1(constr_child).pred( intermediate_dag(x1).v1(constr_child).pred== parent_rem)= [];
+        end
+
+        for s_rem = 1:length(succ_temp)
+            succ_rem = succ_temp(s_rem);
+            intermediate_dag(x1).v1(constr_par).succ( intermediate_dag(x1).v1(constr_par).succ == succ_rem)= [];
+            intermediate_dag(x1).v1(succ_rem).pred( intermediate_dag(x1).v1(succ_rem).pred== constr_par)= [];
+
+        end 
+        
+        %check for cycles
+        isdag= isdag_test(intermediate_dag(x1).v1);
+        if(~isdag)
+            if (check<2)
+                %reverse the pair relation and check if it leads to cycles
+                constr_par = arti_constr_pair(x1,2);    %%parent and
+                constr_child= arti_constr_pair(x1,1);   %%child in the constraint pair
+                
+
+        [intermediate_dag(x1).path_num,intermediate_dag(x1).path_weight]=  paths_weights(intermediate_dag(x1).v1);
+        intermediate_dag(x1).load_diff_inter = max(intermediate_dag(x1).path_weight)-min(intermediate_dag(x1).path_weight);
+        intermediate_dag(x1).paths_n = length(intermediate_dag(x1).path_num);
+        printTask(intermediate_dag(x1).v1);
+        
+        else %revert to starting dag
+        
+        
+   end
+        selection_func(0)
+ end
